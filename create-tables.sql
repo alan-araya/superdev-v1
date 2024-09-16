@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS flight_booking;
 CREATE TABLE flight_booking (
     id SERIAL PRIMARY KEY,
     flight_number INT NOT NULL,

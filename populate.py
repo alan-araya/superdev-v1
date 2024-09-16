@@ -31,7 +31,8 @@ def populate_seats():
                 seat = FlightBooking(
                     flight_number=1,
                     seat=f"{row}{seat_letter}",
-                    is_free=True
+                    is_free=True,
+                    seat_type="Premium"
                 )
                 db.session.add(seat)
         # Assentos Economy Premium (Fileiras 11 e 23)
@@ -40,7 +41,8 @@ def populate_seats():
                 seat = FlightBooking(
                     flight_number=1,
                     seat=f"{row}{seat_letter}",
-                    is_free=True
+                    is_free=True,
+                    seat_type="Economy Premium"
                 )
                 db.session.add(seat)
         # Assentos Economy (Fileiras 12 a 22 e 24 a 34)
@@ -49,7 +51,8 @@ def populate_seats():
                 seat = FlightBooking(
                     flight_number=1,
                     seat=f"{row}{seat_letter}",
-                    is_free=True
+                    is_free=True,
+                    seat_type="Economy"
                 )
                 db.session.add(seat)
         db.session.commit()
