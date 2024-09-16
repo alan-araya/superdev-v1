@@ -1,13 +1,13 @@
+# app.py
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
-from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
 import os
 import datetime
+
+from models import db, FlightBooking  # Importa o modelo e o objeto db
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -19,26 +19,7 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
-
-Base = declarative_base()
-
-# Modelo da entidade FlightBooking
-class FlightBooking(db.Model):
-    __tablename__ = 'flight_booking'
-    id = db.Column(Integer, primary_key=True)
-    flight_number = db.Column(Integer, nullable=False)
-    seat = db.Column(String(10), nullable=False, unique=True)
-    is_free = db.Column(Boolean, default=True)
-    booking_date = db.Column(DateTime)
-
-    def to_dict(self):
-        return {
-            'flight_number': self.flight_number,
-            'seat': self.seat,
-            'is_free': self.is_free,
-            'booking_date': self.booking_date
-        }
+db.init_app(app)  # Inicializa o objeto db com o aplicativo Flask
 
 # Endpoint de Health Check
 @app.route('/flight/hc', methods=['GET'])
