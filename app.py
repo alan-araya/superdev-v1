@@ -1,5 +1,6 @@
 # app.py
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Importa a extensão Flask-CORS
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -13,6 +14,7 @@ from models import db, FlightBooking  # Importa o modelo e o objeto db
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Configura a extensão Flask-CORS para permitir CORS em todas as rotas
 
 # Configuração do banco de dados
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -50,19 +52,23 @@ def book_seat():
         db.session.rollback()
         return jsonify({'message': 'Erro ao reservar o assento.', 'error': str(e)}), 500
 
-# Endpoint para obter todos os assentos livres
+def seat_sort_key(seat):
+    """
+    Função para gerar a chave de ordenação para os assentos.
+    """
+    return (int(seat.seat[:-1]), seat.seat[-1])
+
 @app.route('/flight/availability', methods=['GET'])
 def get_available_seats():
-    seats = FlightBooking.query.filter_by(is_free=True).all()
-    seats_list = [seat.to_dict() for seat in seats]
-    return jsonify(seats_list), 200
+    available_seats = FlightBooking.query.filter_by(is_free=True).all()
+    sorted_seats = sorted(available_seats, key=seat_sort_key)
+    return jsonify([seat.seat for seat in sorted_seats])
 
-# Endpoint para obter todos os assentos e seus status
 @app.route('/flight/seats', methods=['GET'])
 def get_all_seats():
-    seats = FlightBooking.query.all()
-    seats_list = [seat.to_dict() for seat in seats]
-    return jsonify(seats_list), 200
+    all_seats = FlightBooking.query.all()
+    sorted_seats = sorted(all_seats, key=seat_sort_key)
+    return jsonify([{'seat': seat.seat, 'is_free': seat.is_free, 'seat_type': seat.seat_type} for seat in sorted_seats])
 
 # Endpoint para limpar todas as reservas
 @app.route('/flight', methods=['DELETE'])
