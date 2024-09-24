@@ -1,6 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
     const seatContainer = document.getElementById("seat-container");
 
+    // Função para atualizar o conteúdo da página
+    function updatePageContent() {
+        loadSeats();
+    }
+
+    // Configura um timer para atualizar o conteúdo da página a cada segundo
+    setInterval(updatePageContent, 1000);
+
     // Função para carregar os dados de assentos da API
     async function loadSeats() {
         try {
