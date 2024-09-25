@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 from datetime import datetime
 from model import db, FlightBooking  # Importa o modelo e o objeto db
+from flask_cors import CORS
 
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -17,6 +18,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Inicializar a aplicação com o banco de dados
 db.init_app(app)
 
+# Permitir CORS para todos os domínios e rotas
+CORS(app)
 
 # Método para reservar um assento
 @app.route('/flight/reserve', methods=['POST'])
