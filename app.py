@@ -1,6 +1,5 @@
 # app.py
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Importa a função CORS
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -14,7 +13,6 @@ from models import db, FlightBooking  # Importa o modelo e o objeto db
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Configura o suporte a CORS
 
 # Configuração do banco de dados
 DATABASE_URL = os.getenv('DATABASE_URL')
