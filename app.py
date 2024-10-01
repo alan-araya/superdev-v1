@@ -28,27 +28,39 @@ db.init_app(app)  # Inicializa o objeto db com o aplicativo Flask
 def health_check():
     return "Hello-World", 200
 
+
 # Endpoint para reservar um assento
-@app.route('/flight/booking', methods=['POST'])
+@app.route('/flight/reserve', methods=['POST'])
 def book_seat():
     seat_number = request.json.get('seat')
     if not seat_number:
-        return jsonify({'message': 'Número do assento é obrigatório.'}), 400
-    try:
-        seat = FlightBooking.query.filter_by(seat_number=seat_number).first()
-        if not seat:
-            return jsonify({'message': 'Assento não encontrado.'}), 404
-        if not seat.is_free:
-            return jsonify({'message': 'Assento já está reservado.'}), 400
-        seat.is_free = False
-        seat.booking_date = datetime.datetime.now()
-        db.session.commit()
-        return jsonify({'message': 'Assento reservado com sucesso.'}), 200
-    except IntegrityError:
-        db.session.rollback()
-        return jsonify({'message': 'Erro ao reservar o assento.'}), 500
+        return jsonify({'message': 'Parâmetro "seat" é obrigatório.'}), 400
 
-# Endpoint para obter todos os assentos
+    try:
+        # Inicia uma transação
+        with db.session.begin_nested():
+            # Bloqueia o registro para evitar condições de corrida
+            seat = db.session.query(FlightBooking).with_for_update().filter_by(seat=seat_number).first()
+            if not seat:
+                return jsonify({'message': 'Assento não encontrado.'}), 404
+            if not seat.is_free:
+                return jsonify({'message': 'Assento já está reservado.'}), 400
+            seat.is_free = False
+            seat.booking_date = datetime.datetime.now()
+            db.session.commit()
+        return jsonify({'message': 'Assento reservado com sucesso.'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Erro ao reservar o assento.', 'error': str(e)}), 500
+
+# Endpoint para obter todos os assentos livres
+@app.route('/flight/availability', methods=['GET'])
+def get_available_seats():
+    seats = FlightBooking.query.filter_by(is_free=True).all()
+    seats_list = [seat.to_dict() for seat in seats]
+    return jsonify(seats_list), 200
+
+# Endpoint para obter todos os assentos e seus status
 @app.route('/flight/seats', methods=['GET'])
 def get_all_seats():
     seats = FlightBooking.query.all()
