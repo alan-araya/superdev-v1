@@ -27,7 +27,7 @@ def health_check():
     return "Hello-World", 200
 
 # Endpoint para reservar um assento
-@app.route('/flight/booking', methods=['POST'])
+@app.route('/flight/reserve', methods=['POST'])
 def book_seat():
     seat_number = request.json.get('seat')
     if not seat_number:
