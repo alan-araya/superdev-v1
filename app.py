@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
 import datetime
+import re
 
 from models import db, FlightBooking  # Importa o modelo e o objeto db
 
@@ -29,13 +30,13 @@ def health_check():
     return "Hello-World", 200
 
 # Endpoint para reservar um assento
-@app.route('/flight/booking', methods=['POST'])
+@app.route('/flight/reserve', methods=['POST'])
 def book_seat():
-    seat_number = request.json.get('seat')
-    if not seat_number:
+    seat = request.json.get('seat')
+    if not seat:
         return jsonify({'message': 'Número do assento é obrigatório.'}), 400
     try:
-        seat = FlightBooking.query.filter_by(seat_number=seat_number).first()
+        seat = FlightBooking.query.filter_by(seat=seat).first()
         if not seat:
             return jsonify({'message': 'Assento não encontrado.'}), 404
         if not seat.is_free:
@@ -48,11 +49,25 @@ def book_seat():
         db.session.rollback()
         return jsonify({'message': 'Erro ao reservar o assento.'}), 500
 
+def sort_seats(seat):
+    match = re.match(r"(\d+)([A-Z])", seat.seat)
+    if match:
+        return int(match.group(1)), match.group(2)
+    return 0, ""
+
 # Endpoint para obter todos os assentos
 @app.route('/flight/seats', methods=['GET'])
 def get_all_seats():
     seats = FlightBooking.query.all()
-    seats_list = [seat.to_dict() for seat in seats]
+    seats_sorted = sorted(seats, key=sort_seats)
+    seats_list = [seat.to_dict() for seat in seats_sorted]
+    return jsonify(seats_list), 200
+
+@app.route('/flight/availability', methods=['GET'])
+def get_available_seats():
+    seats = FlightBooking.query.filter_by(is_free=True).all()
+    seats_sorted = sorted(seats, key=sort_seats)
+    seats_list = [seat.to_dict() for seat in seats_sorted]
     return jsonify(seats_list), 200
 
 # Endpoint para limpar todas as reservas
