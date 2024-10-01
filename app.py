@@ -1,5 +1,6 @@
 # app.py
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Importa a função CORS
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -13,6 +14,7 @@ from models import db, FlightBooking  # Importa o modelo e o objeto db
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Configura o suporte a CORS
 
 # Configuração do banco de dados
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -31,33 +33,22 @@ def health_check():
 def book_seat():
     seat_number = request.json.get('seat')
     if not seat_number:
-        return jsonify({'message': 'Parâmetro "seat" é obrigatório.'}), 400
-
+        return jsonify({'message': 'Número do assento é obrigatório.'}), 400
     try:
-        # Inicia uma transação
-        with db.session.begin_nested():
-            # Bloqueia o registro para evitar condições de corrida
-            seat = db.session.query(FlightBooking).with_for_update().filter_by(seat=seat_number).first()
-            if not seat:
-                return jsonify({'message': 'Assento não encontrado.'}), 404
-            if not seat.is_free:
-                return jsonify({'message': 'Assento já está reservado.'}), 400
-            seat.is_free = False
-            seat.booking_date = datetime.datetime.now()
-            db.session.commit()
+        seat = FlightBooking.query.filter_by(seat_number=seat_number).first()
+        if not seat:
+            return jsonify({'message': 'Assento não encontrado.'}), 404
+        if not seat.is_free:
+            return jsonify({'message': 'Assento já está reservado.'}), 400
+        seat.is_free = False
+        seat.booking_date = datetime.datetime.now()
+        db.session.commit()
         return jsonify({'message': 'Assento reservado com sucesso.'}), 200
-    except Exception as e:
+    except IntegrityError:
         db.session.rollback()
-        return jsonify({'message': 'Erro ao reservar o assento.', 'error': str(e)}), 500
+        return jsonify({'message': 'Erro ao reservar o assento.'}), 500
 
-# Endpoint para obter todos os assentos livres
-@app.route('/flight/availability', methods=['GET'])
-def get_available_seats():
-    seats = FlightBooking.query.filter_by(is_free=True).all()
-    seats_list = [seat.to_dict() for seat in seats]
-    return jsonify(seats_list), 200
-
-# Endpoint para obter todos os assentos e seus status
+# Endpoint para obter todos os assentos
 @app.route('/flight/seats', methods=['GET'])
 def get_all_seats():
     seats = FlightBooking.query.all()
