@@ -49,6 +49,24 @@ h1 {
     font-size: 0.8em;
 }
 
+.seat-group {
+    display: flex;
+    gap: 2px; /* Espaçamento reduzido entre assentos do mesmo grupo */
+    margin: 0 10px; /* Espaço entre os grupos */
+}
+
+/* Espaço central entre os grupos */
+.row > .seat-group + .seat-group {
+    margin-left: 40px; 
+}
+
+/* Scroll garantido */
+.seat-container {
+    max-height: 80vh;
+    overflow-y: auto;
+    /* ... */
+}
+
 .seat-premium { background-color: #87CEEB; }
 .seat-economy-premium { background-color: #FFA500; }
 .seat-economy { background-color: #90EE90; }

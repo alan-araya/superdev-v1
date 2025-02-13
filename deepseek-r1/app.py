@@ -3,6 +3,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from datetime import datetime
 from extensions import db
+from sqlalchemy import func
 import os
 from model import FlightBooking
 
@@ -46,12 +47,18 @@ def reserve_seat():
 
 @app.route('/flight/availability', methods=['GET'])
 def get_availability():
-    seats = FlightBooking.query.filter_by(is_free=True).all()
+    seats = FlightBooking.query.filter_by(is_free=True).order_by(
+        db.cast(db.func.substring(FlightBooking.seat, '^\\d+'), db.Integer),
+        db.func.substring(FlightBooking.seat, '[A-Za-z]+')
+    ).all()
     return jsonify([seat.to_dict() for seat in seats]), 200
 
 @app.route('/flight/seats', methods=['GET'])
 def get_all_seats():
-    seats = FlightBooking.query.all()
+    seats = FlightBooking.query.order_by(
+        db.cast(db.func.substring(FlightBooking.seat, '^\\d+'), db.Integer),
+        db.func.substring(FlightBooking.seat, '[A-Za-z]+')
+    ).all()
     return jsonify([seat.to_dict() for seat in seats]), 200
 
 @app.route('/flight', methods=['DELETE'])

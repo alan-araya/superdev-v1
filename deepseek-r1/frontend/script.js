@@ -6,53 +6,73 @@ function createSeatElement(seat, isFree) {
     seatDiv.textContent = seat.seat.replace(/[0-9]/g, '');
     return seatDiv;
 }
-
 function renderSeats(seats) {
     const container = document.getElementById('seatContainer');
     container.innerHTML = '';
 
+    // Ordenar assentos numericamente
+    const sortedSeats = seats.sort((a, b) => {
+        const aRow = parseInt(a.seat.match(/^\d+/)[0]);
+        const bRow = parseInt(b.seat.match(/^\d+/)[0]);
+        const aLetter = a.seat.match(/[A-Za-z]+/)[0];
+        const bLetter = b.seat.match(/[A-Za-z]+/)[0];
+        return aRow - bRow || aLetter.localeCompare(bLetter);
+    });
+
+    // Agrupar por fileira
     const rows = Array.from({length: 34}, (_, i) => i + 1);
-    
+
     rows.forEach(rowNumber => {
+        const rowSeats = sortedSeats.filter(s => 
+            parseInt(s.seat.match(/^\d+/)[0]) === rowNumber
+        );
+        const seatType = rowSeats[0]?.seat_type;
+
         const rowDiv = document.createElement('div');
         rowDiv.className = 'row';
-        
+
+        // Número da fileira
         const rowNumberDiv = document.createElement('div');
         rowNumberDiv.className = 'row-number';
         rowNumberDiv.textContent = rowNumber;
-        
+
+        // Grupos de assentos
         const leftGroup = document.createElement('div');
         leftGroup.className = 'seat-group';
         
         const rightGroup = document.createElement('div');
         rightGroup.className = 'seat-group';
 
-        const rowSeats = seats.filter(s => parseInt(s.seat) === rowNumber);
-        const seatType = rowSeats[0]?.seat_type;
+        // Lógica Economy Premium
+        if (seatType === 'Economy Premium') {
+            // Esquerda: A, B + inválido
+            ['A', 'B'].forEach(letter => {
+                const seat = rowSeats.find(s => s.seat.endsWith(letter));
+                leftGroup.appendChild(createSeatElement(seat, seat?.is_free));
+            });
+            leftGroup.appendChild(createInvalidSeat());
 
-        // Lado Esquerdo (A,B,C)
-        ['A', 'B', 'C'].forEach(letter => {
-            const seat = rowSeats.find(s => s.seat.endsWith(letter));
-            if (seat) {
-                leftGroup.appendChild(createSeatElement(seat, seat.is_free));
-            } else if (seatType === 'Economy Premium' && letter === 'C') {
-                leftGroup.appendChild(createInvalidSeat());
-            }
-        });
-
-        // Lado Direito (D,E,F)
-        ['D', 'E', 'F'].forEach(letter => {
-            const seat = rowSeats.find(s => s.seat.endsWith(letter));
-            if (seat) {
-                rightGroup.appendChild(createSeatElement(seat, seat.is_free));
-            } else if (seatType === 'Economy Premium' && letter === 'E') {
-                rightGroup.appendChild(createInvalidSeat());
-            }
-        });
+            // Direita: C, D + inválido
+            ['C', 'D'].forEach(letter => {
+                const seat = rowSeats.find(s => s.seat.endsWith(letter));
+                rightGroup.appendChild(createSeatElement(seat, seat?.is_free));
+            });
+            rightGroup.appendChild(createInvalidSeat());
+        } else {
+            // Demais classes
+            ['A', 'B', 'C'].forEach(letter => {
+                const seat = rowSeats.find(s => s.seat.endsWith(letter));
+                if (seat) leftGroup.appendChild(createSeatElement(seat, seat.is_free));
+            });
+            
+            ['D', 'E', 'F'].forEach(letter => {
+                const seat = rowSeats.find(s => s.seat.endsWith(letter));
+                if (seat) rightGroup.appendChild(createSeatElement(seat, seat.is_free));
+            });
+        }
 
         rowDiv.appendChild(rowNumberDiv);
         rowDiv.appendChild(leftGroup);
-        rowDiv.appendChild(document.createTextNode(' ')); // Espaço entre grupos
         rowDiv.appendChild(rightGroup);
         container.appendChild(rowDiv);
     });

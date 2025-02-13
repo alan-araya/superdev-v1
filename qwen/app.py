@@ -51,13 +51,19 @@ def reserve_seat():
 # Verificar Disponibilidade de Assentos
 @app.route('/flight/availability', methods=['GET'])
 def get_availability():
-    available_seats = FlightBooking.query.filter_by(is_free=True).all()
+    available_seats = FlightBooking.query.filter_by(is_free=True).order_by(
+        db.cast(db.func.substr(FlightBooking.seat, 1, db.func.length(FlightBooking.seat) - 1), db.Integer),
+        db.func.substr(FlightBooking.seat, -1)
+    ).all()
     return jsonify([seat.to_dict() for seat in available_seats]), 200
 
 # Listar Todos os Assentos
 @app.route('/flight/seats', methods=['GET'])
 def get_all_seats():
-    all_seats = FlightBooking.query.all()
+    all_seats = FlightBooking.query.order_by(
+        db.cast(db.func.substr(FlightBooking.seat, 1, db.func.length(FlightBooking.seat) - 1), db.Integer),
+        db.func.substr(FlightBooking.seat, -1)
+    ).all()
     return jsonify([seat.to_dict() for seat in all_seats]), 200
 
 # Limpar Todas as Reservas
