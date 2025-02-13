@@ -1,0 +1,78 @@
+/* Estilo básico para a página */
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+/* Container do mapa de assentos com scroll vertical */
+#seat-map-container {
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+/* Cada fileira de assentos */
+.seat-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Rótulo da fileira (número da fileira) */
+.row-label {
+  width: 30px;
+  text-align: right;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+/* Grupos de assentos: os assentos de cada grupo ficam mais próximos entre si */
+.seat-group-left,
+.seat-group-right {
+  display: flex;
+  gap: 2px; /* Espaçamento reduzido entre os assentos do mesmo grupo */
+}
+
+/* Espaçador entre os grupos com espaço maior */
+.seat-spacer {
+  width: 20px;
+}
+
+/* Estilo padrão de cada assento */
+.seat-item {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Assentos Premium livres – Azul Claro */
+.seat-premium {
+  background-color: #ADD8E6;
+}
+
+/* Assentos Economy Premium livres – Laranja */
+.seat-economy-premium {
+  background-color: #FFA500;
+}
+
+/* Assentos Economy livres – Verde Claro */
+.seat-economy {
+  background-color: #90EE90;
+}
+
+/* Assentos ocupados – Cor Cinza */
+.seat-occupied {
+  background-color: #808080 !important;
+}
+
+/* Bloco inválido (placeholder) para manter alinhamento – Cor Cinza Claro */
+.seat-invalid {
+  background-color: #D3D3D3;
+}

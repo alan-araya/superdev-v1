@@ -1,5 +1,7 @@
+-- Drop table se existir
 DROP TABLE IF EXISTS flight_booking;
 
+-- Cria tabela
 CREATE TABLE flight_booking (
     id SERIAL PRIMARY KEY,
     flight_number INT NOT NULL,
